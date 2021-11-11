@@ -6,7 +6,7 @@
 # set a custom folder name to export textures to, or leave blank to automatically use this file's directory folder name
 folder_name = ""
 # use this to ensure colors close to your transparency color don't become transparent when converted (because rgb565 has lower precision)
-transparency_color = (127, 0, 255)
+transparency_color = (255, 0, 255)
 
 
 import glob

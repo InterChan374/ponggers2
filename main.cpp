@@ -14,11 +14,23 @@
 #define P_HEIGHT 8
 #define P_SPEED 6
 #define B_SIZE 16
-#define B_STARTINGSPEED 10
+#define B_STARTINGSPEED 12
 #define B_BOUNCEANGLE 100
 #define B_COOLDOWN 10
 #define B_TRAILAMOUNT 10
 
+int lerp(int a, int b, int t) { // t is in percent since no float
+	return a + t * (b - a) / 100;
+}
+
+int clamp(int a, int min, int max) {
+	if (a < min) {
+		return min;
+	} else if (a > max) {
+		return max;
+	}
+	return a;
+}
 
 void rect(int x, int y, int w, int h, uint16_t c) {
 	for (int j = 0; j < h; j++) {
@@ -45,37 +57,64 @@ void main2() {
 		ballTrailsX[i] = ballX;
 		ballTrailsY[i] = ballY;
 	}
+	bool cpTargetSet = false;
+	int cpTarget = ballX;
 	
 	// load the textures and fonts
-	LOAD_FONT_PTR("ponggers2\\fnt\\7x8", f_7x8);
-	LOAD_TEXTURE_PTR("ponggers2\\paddle", t_paddle);
-	LOAD_TEXTURE_PTR("ponggers2\\paddle2", t_paddle2);
-	LOAD_TEXTURE_PTR("ponggers2\\ball", t_ball);
-	LOAD_TEXTURE_PTR("ponggers2\\ball_trail", t_ball_trail);
+	LOAD_FONT_PTR("fnt\\7x8", f_7x8);
+	LOAD_TEXTURE_PTR("paddle", t_paddle);
+	LOAD_TEXTURE_PTR("paddle2", t_paddle2);
+	LOAD_TEXTURE_PTR("ball", t_ball);
+	LOAD_TEXTURE_PTR("ball_trail", t_ball_trail);
 	
-	while (true) {
+	// game starting screen
+	for (int i = 0; i < 100; i+=5) {
+		fillScreen(color(22, 22, 22));
+		DRAW_TEXTURE(t_ball, lerp(0, ballX, i), lerp(0, ballY, i));
+		draw_font_shader(f_7x8, "ponggers2", 16, 128, color(255, 60, 0), 0, 0, 4, color(122, 222, 222));
+		LCD_Refresh();
+	}
+	
+	bool game_running = true;
+	while (game_running) {
 		uint32_t key1, key2;
 		getKey(&key1, &key2);
-		if (testKey(key1, key2, KEY_CLEAR)) break;
+		if (testKey(key1, key2, KEY_CLEAR)) game_running = false;
 		if (testKey(key1, key2, KEY_LEFT)) youX -= P_SPEED;
 		if (testKey(key1, key2, KEY_RIGHT)) youX += P_SPEED;
-		if (youX < 1) youX = 0;
-		if (youX > width - P_WIDTH) youX = width - P_WIDTH;
+		youX = clamp(youX, 0, width - P_WIDTH);
 		
 		// cp logics
-		if ((ballX + B_SIZE / 2) < (cpX + P_WIDTH / 2)) cpX -= P_SPEED;
-		if ((ballX + B_SIZE / 2) > (cpX + P_WIDTH / 2)) cpX += P_SPEED;
-		if (cpX < 1) cpX = 0;
-		if (cpX > width - P_WIDTH) cpX = width - P_WIDTH;
+		if (!cpTargetSet) {
+			int a = ballX + ballVelX * (ballY - P_HEIGHT) / -ballVelY; // where the ball would go if there were no walls
+			int b = (a % (width-B_SIZE) + (width-B_SIZE)) % (width-B_SIZE); // modulus of the position
+			int c = (a - b) / (width-B_SIZE); // how many screen widths variable "b" is offset by
+			cpTarget = b;
+			if (c & 1) { // if the screen width offset is odd, reflect the ball position
+				cpTarget = width - cpTarget - B_SIZE;
+			}
+			cpTarget += B_SIZE / 2;
+			// println("a = %d", a);
+			// println("b = %d", b);
+			// println("c = %d", c);
+			// println("cpTarget = %d", cpTarget);
+			// for (int i = 0; i < 40; i++) {
+			// 	LCD_Refresh();
+			// }
+			cpTargetSet = true;
+		}
+		if (cpTarget < (cpX + P_WIDTH / 2)) cpX -= P_SPEED;
+		if (cpTarget > (cpX + P_WIDTH / 2)) cpX += P_SPEED;
+		cpX = clamp(cpX, 0, width - P_WIDTH);
 		
 		// ball physics
 		ballX += ballVelX;
 		ballY += ballVelY;
-		if (ballX <= 0) {
+		if (ballX < 0) {
 			ballX = -ballX;
 			ballVelX = -ballVelX;
 		}
-		if (ballX >= width - B_SIZE) {
+		if (ballX > width - B_SIZE) {
 			ballX = -ballX - 2 * B_SIZE + 2 * width;
 			ballVelX = -ballVelX;
 		}
@@ -90,9 +129,10 @@ void main2() {
 					ballVelY = -COS(i, ballSpeed);
 					ballSpeed += 2;
 					ballCooldown = 0;
+					cpTargetSet = false;
 				} else {
 					ballCooldown--;
-					if (ballCooldown < -2) ballCooldown = B_COOLDOWN;
+					if (ballCooldown < -1) ballCooldown = B_COOLDOWN;
 				}
 			}
 			// at cp's edge
@@ -104,7 +144,7 @@ void main2() {
 					ballCooldown = 0;
 				} else {
 					ballCooldown--;
-					if (ballCooldown < -2) ballCooldown = B_COOLDOWN;
+					if (ballCooldown < -1) ballCooldown = B_COOLDOWN;
 				}
 			}
 		}
@@ -138,6 +178,13 @@ void main2() {
 		DRAW_TEXTURE(t_ball, ballX, ballY);
 		
 		draw_font_shader(f_7x8, fps_formatted, 0, 0, 0xFFFF, 0, 0, 5, color(255, 128, 0));
+		LCD_Refresh();
+	}
+	
+	// game ending screen
+	for (int i = 0; i < 30; i+=2) {
+		fillScreen(color(240, 240, 240));
+		draw_font_shader(f_7x8, "ponggers2", 16, 248, color(50, 45, 45), 0, 0, 3, i);
 		LCD_Refresh();
 	}
 }

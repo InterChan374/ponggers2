@@ -5,8 +5,8 @@
 // refer to this example below on using the functions:
 /*
 
-uint8_t *playerSprite = load_texture("GameName\\player");
-LOAD_FONT_PTR("GameName\\fnt\\default", menuFont);							// just a shorthand thing, see the "#define" section below for more
+uint16_t *playerSprite = load_texture("GameName\\player");					// for the path, if you #define PATH_PREFIX (see line 24) then you can omit the game name and just have "player"
+LOAD_FONT_PTR("GameName\\fnt\\default", menuFont);							// just a shorthand, refer to "#define" section below. note that load_texture is uint16_t* while load_font is uint8_t*
 
 draw_texture_shader(playerSprite, 60, 90, 2, 1);							// draws the loaded texture at (60, 90) using shader #2 with "1" as the argument which shows the second frame of the texture
 draw_font_shader(menuFont, "Nice font!", 40, 180, 0xFFFF, 150, 2, 4, 3);	// displays "Nice font!" with the loaded font at (40, 180) with rgb565 color 0xFFFF, wrapping at 150 pixels horizontally from 40, with 2 pixel gap between lines vertically, using shader 4 which is image scale at 3x
@@ -20,12 +20,15 @@ free(menuFont);
 
 #pragma once
 
+// change the last folder name below to your game folder name in the converted "res" folder
+#define PATH_PREFIX "\\fls0\\res\\ponggers2\\"
+
 #include <sdk/os/file.hpp>
 #include <sdk/os/mem.hpp>
 #include <sdk/os/string.hpp>
 #include "shaders.hpp"
 
-#define LOAD_TEXTURE_PTR(path, pointer) uint8_t *pointer = load_texture(path)
+#define LOAD_TEXTURE_PTR(path, pointer) uint16_t *pointer = load_texture(path)
 #define LOAD_FONT_PTR(path, pointer) uint8_t *pointer = load_font(path)
 #define DRAW_TEXTURE(texturepointer, x, y) draw_texture_shader(texturepointer, x, y, 1, 0)
 #define DRAW_TEXTURE_FRAME(texturepointer, x, y, frame) draw_texture_shader(texturepointer, x, y, 2, frame)
@@ -35,52 +38,62 @@ inline uint16_t uint8to16(uint8_t highByte, uint8_t lowByte) {
 	return (highByte << 8) | lowByte;
 }
 
-uint8_t *load_texture(const char *texturepath) {
+uint16_t *load_texture(const char *texturepath) {
 	char concatpath[128];
-	strcpy(concatpath, "\\fls0\\res\\");
+	#ifdef PATH_PREFIX
+		strcpy(concatpath, PATH_PREFIX);
+	#else
+		strcpy(concatpath, "\\fls0\\res\\");
+	#endif
 	strcat(concatpath, texturepath);
 	int fd = open(concatpath, OPEN_READ);
 	if (fd > -1) {
-		uint8_t info[4];
+		uint16_t info[2];
 		read(fd, info, 4);
-		uint16_t w = uint8to16(info[0], info[1]);
-		uint16_t h = uint8to16(info[2], info[3]);
-		uint8_t *result = (uint8_t*)malloc(w*h*2+4);
+		uint16_t w = info[0];
+		uint16_t h = info[1];
+		uint16_t *result = (uint16_t*)malloc(w*h*2+4);
 		lseek(fd, 0, SEEK_SET);
 		read(fd, result, w*h*2+4);
 		close(fd);
 		return result;
 	}
+	return 0;
 }
 
-void draw_texture_shader(uint8_t *texturepointer, int16_t x, int16_t y, uint16_t shaderID, int shaderArg) {
-	uint16_t w = uint8to16(texturepointer[0], texturepointer[1]);
-	uint16_t h = uint8to16(texturepointer[2], texturepointer[3]);
-	int k = 4;
+void draw_texture_shader(uint16_t *texturepointer, int16_t x, int16_t y, uint16_t shaderID, int shaderArg) {
+	uint16_t w = texturepointer[0];
+	uint16_t h = texturepointer[1];
+	int k = 2;
 	for (int16_t j = 0; j < h; j++) {
 		for (int16_t i = 0; i < w; i++) {
-			shader(x, y, w, h, i, j, uint8to16(texturepointer[k], texturepointer[k+1]), shaderID, shaderArg);
-			k += 2;
+			shader(x, y, w, h, i, j, texturepointer[k], shaderID, shaderArg);
+			k++;
 		}
 	}
 }
 
 uint8_t *load_font(const char *fontpath) {
 	char concatpath[128];
-	strcpy(concatpath, "\\fls0\\res\\");
+	#ifdef PATH_PREFIX
+		strcpy(concatpath, PATH_PREFIX);
+	#else
+		strcpy(concatpath, "\\fls0\\res\\");
+	#endif
 	strcat(concatpath, fontpath);
 	int fd = open(concatpath, OPEN_READ);
 	if (fd > -1) {
-		uint8_t info[4];
+		uint16_t info[4];
 		read(fd, info, 4);
-		uint16_t w = uint8to16(info[0], info[1]);
-		uint16_t h = uint8to16(info[2], info[3]);
+		uint16_t w = info[0];
+		uint16_t h = info[1];
 		uint8_t *result = (uint8_t*)malloc(95*w*h/8+5);
 		lseek(fd, 0, SEEK_SET);
 		read(fd, result, (95*w*h/8)+5);
 		close(fd);
 		return result;
 	}
+	return 0;
 }
 
 #define CHAR_SPACING 1

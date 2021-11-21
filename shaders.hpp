@@ -10,6 +10,7 @@
 #pragma once
 
 #include <sdk/calc/calc.hpp>
+#include "trig_functions.hpp"
 
 #define TRANSPARENCY_COLOR 0xF81F // (255, 0, 255) or #FF00FF
 
@@ -26,20 +27,25 @@ void shader(int16_t x, int16_t y, int16_t w, int16_t h, int16_t i, int16_t j, ui
 			}
 			break;
 		case 2:
-			// cutout + frame selection (for textures containing multiple "frames", useful for rotation, animations and texture variants. see texture_rotator.py)
+			// frame selection + cutout (for textures containing multiple "frames", useful for rotation, animations and texture variants. see texture_rotator.py)
 			// (this uses the texture width as the height of one frame, so make sure the frames are square)
 			if (j / w == shaderArg) {
 				shader(x, y - shaderArg * w, w, h, i, j, color, 1, 0);
 			}
 			break;
 		case 3:
-			// for opacity shader, just get the LCD pixel's color and multiply with texture color???
+			// scaling of 4 + sine wavy effect, the amplitude is fixed but shaderArg alters the period
+			for (int b = 0; b < 4; b++) {
+				for (int a = 0; a < 4; a++) {
+					setPixel(x + i * 4 + a + SIN((j*4+b) * shaderArg / 2, 60), y + j * 4 + b, color);
+				}
+			}
 			break;
 		case 4:
-			// scaling
-			for (int b = 0; b < shaderArg; b++) {
-				for (int a = 0; a < shaderArg; a++) {
-					shader(x, y, w, h, i * shaderArg + a, j * shaderArg + b, color, 1, 0);
+			// scaling of 4 + drop shadow
+			for (int b = 0; b < 4; b++) {
+				for (int a = 0; a < 4; a++) {
+					shader(x, y, w, h, i * 4 + a, j * 4 + b, color, 5, shaderArg);
 				}
 			}
 			break;

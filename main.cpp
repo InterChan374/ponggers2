@@ -7,12 +7,12 @@
 	APP_NAME("ponggers 2: electric boogaloo")
 	APP_DESCRIPTION("pong tech demo thing, left/right arrows to move")
 	APP_AUTHOR("InterChan")
-	APP_VERSION("69")
+	APP_VERSION("690")
 #endif
 
 #define P_WIDTH 60
 #define P_HEIGHT 8
-#define P_SPEED 6
+#define P_SPEED 7
 #define B_SIZE 16
 #define B_STARTINGSPEED 12
 #define B_BOUNCEANGLE 100
@@ -115,39 +115,43 @@ void main2() {
 			ballVelX = -ballVelX;
 		}
 		if (ballX > width - B_SIZE) {
-			ballX = -ballX - 2 * B_SIZE + 2 * width;
+			ballX = -ballX + 2 * (width - B_SIZE);
 			ballVelX = -ballVelX;
 		}
 		if (ballCooldown > 0) {
 			ballCooldown--;
-		} else {
+		}
+		if (ballCooldown <= 0) {
 			// at your edge
-			if (ballY + B_SIZE > height - P_HEIGHT) {
+			if (ballY + B_SIZE >= height - P_HEIGHT) {
 				if (ballX + B_SIZE > youX && ballX < youX + P_WIDTH) {
 					int i = ((ballX + B_SIZE / 2) - (youX + P_WIDTH / 2)) * B_BOUNCEANGLE / P_WIDTH;
 					ballVelX = SIN(i, ballSpeed);
 					ballVelY = -COS(i, ballSpeed);
+					// ballY = -ballY + 2 * (height - P_HEIGHT - B_SIZE);
+					ballY = height - P_HEIGHT - B_SIZE;
 					ballSpeed += 2;
 					ballCooldown = 0;
 					cpTargetSet = false;
 				} else {
-					ballCooldown--;
-					if (ballCooldown < -1) ballCooldown = B_COOLDOWN;
+					ballCooldown = B_COOLDOWN;
 				}
 			}
 			// at cp's edge
-			if (ballY < P_HEIGHT) {
+			if (ballY <= P_HEIGHT) {
 				if (ballX + B_SIZE > cpX && ballX < cpX + P_WIDTH) {
 					int i = ((ballX + B_SIZE / 2) - (cpX + P_WIDTH / 2)) * B_BOUNCEANGLE / P_WIDTH;
 					ballVelX = SIN(i, ballSpeed);
 					ballVelY = COS(i, ballSpeed);
+					// ballY = -ballY + 2 * P_HEIGHT;
+					ballY = P_HEIGHT;
 					ballCooldown = 0;
 				} else {
-					ballCooldown--;
-					if (ballCooldown < -1) ballCooldown = B_COOLDOWN;
+					ballCooldown = B_COOLDOWN;
 				}
 			}
 		}
+		// reset ball after it goes offscreen
 		if (ballCooldown == 1) {
 			ballSpeed = B_STARTINGSPEED;
 			ballX = width / 2 - B_SIZE / 2;
@@ -187,4 +191,11 @@ void main2() {
 		draw_font_shader(f_7x8, "ponggers2", 16, 248, color(50, 45, 45), 0, 0, 3, i);
 		LCD_Refresh();
 	}
+	
+	// freeing the stuff
+	free(f_7x8);
+	free(t_paddle);
+	free(t_paddle2);
+	free(t_ball);
+	free(t_ball_trail);
 }

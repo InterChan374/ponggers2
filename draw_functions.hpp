@@ -32,7 +32,7 @@ free(menuFont);
 #define LOAD_FONT_PTR(path, pointer) uint8_t *pointer = load_font(path)
 #define DRAW_TEXTURE(texturepointer, x, y) draw_texture_shader(texturepointer, x, y, 1, 0)
 #define DRAW_TEXTURE_FRAME(texturepointer, x, y, frame) draw_texture_shader(texturepointer, x, y, 2, frame)
-#define DRAW_FONT(fontpointer, text, x, y, color, wrapLength) draw_font_shader(fontpointer, text, x, y, color, wrapLength, 1, 0, 0)
+#define DRAW_FONT(fontpointer, text, x, y, color) draw_font_shader(fontpointer, text, x, y, color, 0, 1, 0, 0)
 
 inline uint16_t uint8to16(uint8_t highByte, uint8_t lowByte) {
 	return (highByte << 8) | lowByte;

@@ -7,7 +7,7 @@
 	APP_NAME("ponggers 2: electric boogaloo")
 	APP_DESCRIPTION("pong tech demo thing, left/right arrows to move")
 	APP_AUTHOR("InterChan")
-	APP_VERSION("690")
+	APP_VERSION("6900")
 #endif
 
 #define P_WIDTH 60
@@ -40,7 +40,7 @@ void rect(int x, int y, int w, int h, uint16_t c) {
 	}
 }
 
-//The acutal main
+//The actual main
 void main2() {
 	
 	int youX = width / 2 - P_WIDTH / 2;
@@ -168,7 +168,7 @@ void main2() {
 		ballTrailsX[B_TRAILAMOUNT - 1] = ballX;
 		ballTrailsY[B_TRAILAMOUNT - 1] = ballY;
 		
-		fps_update();
+		fps10_update();
 		fps_formatted_update();
 		
 		// draw

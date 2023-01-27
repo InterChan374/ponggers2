@@ -1,9 +1,9 @@
-# convert_textures.py by InterChan
+# https://github.com/InterChan374/cool-classpad-functions
 
-# this script converts pngs in the "textures" folder and saves them in the "res" folder which you then copy onto your Classpad
+# this script converts PNGs in the "textures" folder and saves them in the "usr/[folder_name]" folder which you then copy onto your Classpad
 # converted images are in rgb565 (taking up 2 bytes each pixel) and the image resolution (stored in 4 bytes) is added before the actual image data
 
-# set a custom folder name to export textures to, or leave blank to automatically use this file's directory folder name
+# set a custom folder name to export textures to, or leave blank to let it use the name of the folder this script is in
 folder_name = ""
 # use this to ensure colors close to your transparency color don't become transparent when converted (because rgb565 has lower precision)
 transparency_color = (255, 0, 255)
@@ -22,7 +22,7 @@ def uint16to8(input16):
 if folder_name == "":
 	folder_name = os.path.basename(os.getcwd())
 textures = []
-for imgpath in glob.iglob("textures/**/*.png", recursive = True):
+for imgpath in glob.iglob("textures/**/*.png", recursive = True): # find all the PNGs in "textures" folder and add to the conversion list
 	textures.append(imgpath)
 for texture in textures:
 	imgobject = Image.open(texture)
@@ -40,7 +40,7 @@ for texture in textures:
 				pxl565 ^= 1
 			contents[i], contents[i+1] = uint16to8(pxl565)
 			i += 2
-	filepath = "res/" + folder_name + "/" + texture[9:-4]
+	filepath = "usr/" + folder_name + "/" + texture[9:-4]
 	if not os.path.exists(os.path.dirname(filepath)):
 		os.makedirs(os.path.dirname(filepath))
 	file = open(filepath, "wb")

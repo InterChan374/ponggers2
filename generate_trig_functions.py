@@ -1,4 +1,4 @@
-# generate_trig_functions.py by InterChan
+# https://github.com/InterChan374/cool-classpad-functions
 
 # this script generates trig_functions.hpp
 # the generated arrays contain 256 elements representing sine and cosine values, and it uses integer overflow in place of modulo to loop around
@@ -14,7 +14,7 @@ contents = ""
 lines = open("generate_trig_functions.py", "r").readlines()
 for i in range(6):
 	if i == 0:
-		contents += "// trig_functions.hpp by InterChan\n\n// this header file is generated from generate_trig_functions.py\n"
+		contents += "// https://github.com/InterChan374/cool-classpad-functions\n\n// this header file is generated from generate_trig_functions.py\n"
 	else:
 		contents += "//" + lines[i+2][1:]
 
@@ -30,8 +30,7 @@ for i in range(256):
 		contents += ", "
 contents += "};"
 
-contents += """
-
+contents += """\n
 #define DEGREE_TO_256(angle) ((uint8_t)(angle * 32 / 45))
 #define SIN(angle, hyp) (((int)sin127[DEGREE_TO_256(angle)] * hyp) / 127)
 #define COS(angle, hyp) (((int)cos127[DEGREE_TO_256(angle)] * hyp) / 127)

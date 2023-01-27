@@ -1,32 +1,28 @@
-# convert_fonts.py by InterChan
+# https://github.com/InterChan374/cool-classpad-functions
 
-# this script converts pngs in the "fonts" folder and saves them in the "res/folder_name/fnt" folder which you then copy onto your Classpad
+# this script converts PNGs in the "fonts" folder and saves them in the "usr/fonts" folder which you then copy onto your Classpad
 # converted fonts are in 1-bit opacity and the image resolution (stored in 4 bytes) is added before the actual image data
 # there are 95 characters in total, in ASCII order (from 32 to 126, including space as the first character)
 # when making your font, arrange the characters in 19x5 configuration and ensure each character is the same size
 
-# set a custom folder name to export textures to, or leave blank to automatically use this file's directory folder name
-folder_name = ""
 # only pixels of this color will be read as 1, any other color is transparent in the converted font
 pixel_color = (255, 255, 255)
+# edit these if your font PNGs are laid out differently
+font_cols = 19
+font_rows = 5
+font_gap_x = 1
+font_gap_y = 1
 
 
 import glob
 import os
 from PIL import Image
 
-font_cols = 19
-font_rows = 5
-font_gap_x = 1
-font_gap_y = 1
-
 def uint16to8(input16):
 	return (input16 >> 8) & 0xFF, input16 & 0xFF
 
-if folder_name == "":
-	folder_name = os.path.basename(os.getcwd())
 fonts = []
-for imgpath in glob.iglob("fonts/**/*.png", recursive = True):
+for imgpath in glob.iglob("fonts/**/*.png", recursive = True): # find all the PNGs in "fonts" folder and add to the conversion list
 	fonts.append(imgpath)
 for font in fonts:
 	imgobject = Image.open(font)
@@ -55,7 +51,7 @@ for font in fonts:
 						temp_byte = 0
 	if current_bit > 0:
 		contents[current_byte] = temp_byte
-	filepath = "res/" + folder_name + "/fnt/" + font[6:-4]
+	filepath = "usr/fonts/" + font[6:-4]
 	if not os.path.exists(os.path.dirname(filepath)):
 		os.makedirs(os.path.dirname(filepath))
 	file = open(filepath, "wb")

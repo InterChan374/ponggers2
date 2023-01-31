@@ -1,35 +1,52 @@
 // https://github.com/InterChan374/cool-classpad-functions
 
-// See shaders.hpp for info
+// this file's function goes with draw_functions.hpp
+// you can add case clauses for custom shaders, and the available variables allow for fancy effects
+// "screenX" and "screenY" coordinates represent where the top-left corner of the texture is
+// "textureWidth" and "textureHeight" are the width and height of the texture
+// "offsetX" and "offsetY" are the offsets from the top-left corner, for the current pixel to be drawn
+// when using draw_texture_shader() you can include extra information with "shaderArg"
 
 #include "shaders.hpp"
 
 #define TRANSPARENCY_COLOR 0xF81F // RGB (255, 0, 255) or #FF00FF
 
-void shader(int16_t x, int16_t y, int16_t w, int16_t h, int16_t i, int16_t j, uint16_t color, uint16_t shaderID, int shaderArg) {
+// #define THING texturepointer[k]
+
+void draw_texture_shader(uint16_t *texturepointer, int16_t screenX, int16_t screenY, uint16_t shaderID, int shaderArgs[]) {
+// void draw_texture_shader(int16_t screenX, int16_t screenY, int16_t textureWidth, int16_t textureHeight, int16_t offsetX, int16_t offsetY, uint16_t color, uint16_t shaderID, int shaderArgs[]) {
+	uint16_t textureWidth = texturepointer[0];
+	uint16_t textureHeight = texturepointer[1];
+	int k = 2;
 	switch (shaderID) {
 		default: case 0:
 			// no effects
-			setPixel(x + i, y + j, color);
+			for (int16_t offsetY = 0; offsetY < textureHeight; offsetY++) {
+				for (int16_t offsetX = 0; offsetX < textureWidth; offsetX++) {
+					shader(screenX, screenY, textureWidth, textureHeight, offsetX, offsetY, texturepointer[k], shaderID, shaderArg);
+					k++;
+				}
+			}
+			setPixel(screenX + offsetX, screenY + offsetY, color);
 			break;
 		case 1:
 			// cutout (default shader, used by DRAW_TEXTURE)
 			if (color != TRANSPARENCY_COLOR) {
-				setPixel(x + i, y + j, color);
+				setPixel(screenX + offsetX, screenY + offsetY, color);
 			}
 			break;
 		case 2:
 			// frame selection + cutout (for textures containing multiple "frames", useful for rotation, animations and texture variants. see texture_rotator.py)
 			// (this uses the texture width as the height of one frame, so make sure the frames are square)
-			if (j / w == shaderArg) {
-				shader(x, y - shaderArg * w, w, h, i, j, color, 1, 0);
+			if (offsetY / textureWidth == shaderArg) {
+				shader(screenX, screenY - shaderArg * textureWidth, textureWidth, textureHeight, offsetX, offsetY, color, 1, 0);
 			}
 			break;
 		case 3:
 			// scaling of 4 + sine wavy effect, the amplitude is fixed but shaderArg alters the period
 			for (int b = 0; b < 4; b++) {
 				for (int a = 0; a < 4; a++) {
-					setPixel(x + i * 4 + a + SIN((j*4+b) * shaderArg / 2, 60), y + j * 4 + b, color);
+					setPixel(screenX + offsetX * 4 + a + SIN((offsetY*4+b) * shaderArg / 2, 60), screenY + offsetY * 4 + b, color);
 				}
 			}
 			break;
@@ -37,16 +54,17 @@ void shader(int16_t x, int16_t y, int16_t w, int16_t h, int16_t i, int16_t j, ui
 			// scaling of 4 + drop shadow
 			for (int b = 0; b < 4; b++) {
 				for (int a = 0; a < 4; a++) {
-					shader(x, y, w, h, i * 4 + a, j * 4 + b, color, 5, shaderArg);
+					shader(screenX, screenY, textureWidth, textureHeight, offsetX * 4 + a, offsetY * 4 + b, color, 5, shaderArg);
 				}
 			}
 			break;
 		case 5:
 			// drop shadow for each pixel with color shaderArg
 			if (color != TRANSPARENCY_COLOR) {
-				setPixel(x + i, y + j, color);
-				setPixel(x + i + 1, y + j + 1, (uint16_t)shaderArg);
+				setPixel(screenX + offsetX, screenY + offsetY, color);
+				setPixel(screenX + offsetX + 1, screenY + offsetY + 1, (uint16_t)shaderArg);
 			}
 			break;
+		
 	}
 }

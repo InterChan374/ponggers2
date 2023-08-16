@@ -14,11 +14,7 @@ contents = ""
 lines = open("generate_trig_functions.py", "r").readlines()
 for i in range(6):
 	if i == 0:
-		contents += """// https://github.com/InterChan374/cool-classpad-functions
-// basically copied from SnailMath lmao
-
-// this header file is generated from generate_trig_functions.py
-"""
+		contents += "// https://github.com/InterChan374/cool-classpad-functions\n\n// this header file is generated from generate_trig_functions.py\n"
 	else:
 		contents += "//" + lines[i+2][1:]
 

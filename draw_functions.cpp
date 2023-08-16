@@ -29,6 +29,18 @@ uint16_t *load_texture(const char *texturepath) {
 	return 0;
 }
 
+void draw_texture_shader(uint16_t *texturepointer, int16_t x, int16_t y, uint16_t shaderID, int shaderArg) {
+	uint16_t w = texturepointer[0];
+	uint16_t h = texturepointer[1];
+	int k = 2;
+	for (int16_t j = 0; j < h; j++) {
+		for (int16_t i = 0; i < w; i++) {
+			shader(x, y, w, h, i, j, texturepointer[k], shaderID, shaderArg);
+			k++;
+		}
+	}
+}
+
 uint8_t *load_font(const char *fontpath) {
 	char concatpath[128];
 	#ifdef PATH_PREFIX
@@ -72,8 +84,6 @@ void draw_font_shader(uint8_t *fontpointer, const char *text, int16_t x, int16_t
 				if (fontpointer[current_byte] & current_bit) {
 					shader(x, y, w, h, charbit % w + (w+CHAR_SPACING)*chars_since_newline, charbit / w + (h+lineSpacing)*newlines, color, shaderID, shaderArg);
 				}
-				// replace above part with adding pixels to a new texture, which is initialised with calculated width and height
-				// then after its done, pass it to the shader function
 				current_bit >>= 1;
 				if (current_bit < 1) {
 					current_bit = 128;
